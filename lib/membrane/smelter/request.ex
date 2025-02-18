@@ -1,12 +1,12 @@
-defmodule Membrane.LiveCompositor.Request do
+defmodule Membrane.Smelter.Request do
   @moduledoc """
-  Notifications that can be sent to LiveCompositor to trigger certain actions.
+  Notifications that can be sent to Smelter to trigger certain actions.
 
   After request is handled (but not necessarily completed e.g. if you schedule some action) the bin will
   respond with `t:result/0`.
   """
 
-  alias Membrane.LiveCompositor.ApiClient
+  alias Membrane.Smelter.ApiClient
 
   defmodule RegisterImage do
     @moduledoc """
@@ -65,7 +65,7 @@ defmodule Membrane.LiveCompositor.Request do
     defstruct @enforce_keys ++ []
 
     @typedoc """
-    WGSL shader source code. [Learn more](https://compositor.live/docs/concept/shaders).
+    WGSL shader source code. [Learn more](https://smelter.dev/fundamentals/concepts/shaders).
     """
     @type shader_source :: String.t()
 
@@ -135,13 +135,13 @@ defmodule Membrane.LiveCompositor.Request do
     pads.
     """
 
-    alias Membrane.LiveCompositor
+    alias Membrane.Smelter
 
     @enforce_keys [:input_id]
     defstruct @enforce_keys ++ [schedule_time: nil]
 
     @type t :: %__MODULE__{
-            input_id: LiveCompositor.input_id(),
+            input_id: Smelter.input_id(),
             schedule_time: Membrane.Time | nil
           }
   end
@@ -168,13 +168,13 @@ defmodule Membrane.LiveCompositor.Request do
     pads.
     """
 
-    alias Membrane.LiveCompositor
+    alias Membrane.Smelter
 
     @enforce_keys [:output_id]
     defstruct @enforce_keys ++ [schedule_time: nil]
 
     @type t :: %__MODULE__{
-            output_id: LiveCompositor.output_id(),
+            output_id: Smelter.output_id(),
             schedule_time: Membrane.Time | nil
           }
   end
@@ -200,19 +200,19 @@ defmodule Membrane.LiveCompositor.Request do
     Request to update the scene definition that describes what should be rendered on a specified output.
     """
 
-    alias Membrane.LiveCompositor
+    alias Membrane.Smelter
 
     @enforce_keys [:output_id, :root]
     defstruct @enforce_keys ++ [schedule_time: nil]
 
     @typedoc """
     - `:output_id` - Id of the output that should be updated.
-    - `:root` - Root of a component tree/scene that should be rendered for the output. [Learn more](https://compositor.live/docs/concept/component)
-    - `:schedule_time` - Schedule this update at a specific time. Time is measured from compositor
+    - `:root` - Root of a component tree/scene that should be rendered for the output. [Learn more](https://smelter.dev/http-api/overview#components)
+    - `:schedule_time` - Schedule this update at a specific time. Time is measured from Smelter
     start. If not defined, update will be applied immediately.
     """
     @type t :: %__MODULE__{
-            output_id: LiveCompositor.output_id(),
+            output_id: Smelter.output_id(),
             root: any(),
             schedule_time: Membrane.Time | nil
           }
@@ -243,7 +243,7 @@ defmodule Membrane.LiveCompositor.Request do
     be used to produce the output.
     """
 
-    alias Membrane.LiveCompositor
+    alias Membrane.Smelter
 
     @enforce_keys [:output_id, :inputs]
     defstruct @enforce_keys ++ [schedule_time: nil]
@@ -252,16 +252,16 @@ defmodule Membrane.LiveCompositor.Request do
     - `input_id` - ID of an input that will be used to produce output.
     - `volume` - Number between 0 and 1 that represent volume of the input.
     """
-    @type input :: %{input_id: LiveCompositor.input_id(), volume: float() | nil}
+    @type input :: %{input_id: Smelter.input_id(), volume: float() | nil}
 
     @typedoc """
     - `:output_id` - Id of the output that should be updated.
     - `:inputs` - Inputs and their configuration that should be mixed to produce the output audio.
-    - `:schedule_time` - Schedule this update at a specific time. Time is measured from compositor
+    - `:schedule_time` - Schedule this update at a specific time. Time is measured from Smelter
     start. If not defined, update will be applied immediately.
     """
     @type t :: %__MODULE__{
-            output_id: LiveCompositor.output_id(),
+            output_id: Smelter.output_id(),
             inputs: list(input()),
             schedule_time: Membrane.Time | nil
           }
@@ -298,7 +298,7 @@ defmodule Membrane.LiveCompositor.Request do
     - `:output_id` - Id of the output for which additional keyframe should be generated.
     """
     @type t :: %__MODULE__{
-            output_id: Membrane.LiveCompositor.output_id()
+            output_id: Membrane.Smelter.output_id()
           }
   end
 

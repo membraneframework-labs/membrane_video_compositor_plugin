@@ -1,23 +1,23 @@
-defmodule Membrane.LiveCompositor.Context do
+defmodule Membrane.Smelter.Context do
   @moduledoc """
-  Context of LiveCompositor. Specifies LiveCompositor inputs and outputs.
+  Context of Smelter. Specifies Smelter inputs and outputs.
   """
 
   require Membrane.Pad
 
-  alias Membrane.LiveCompositor
   alias Membrane.Pad
+  alias Membrane.Smelter
 
   defstruct video_inputs: [], audio_inputs: [], video_outputs: [], audio_outputs: []
 
   @typedoc """
-  Context of LiveCompositor. Specifies LiveCompositor inputs and outputs.
+  Context of Smelter. Specifies Smelter inputs and outputs.
   """
   @type t :: %__MODULE__{
-          video_inputs: list(LiveCompositor.input_id()),
-          audio_inputs: list(LiveCompositor.input_id()),
-          video_outputs: list(LiveCompositor.output_id()),
-          audio_outputs: list(LiveCompositor.output_id())
+          video_inputs: list(Smelter.input_id()),
+          audio_inputs: list(Smelter.input_id()),
+          video_outputs: list(Smelter.output_id()),
+          audio_outputs: list(Smelter.output_id())
         }
 
   @doc false
@@ -25,7 +25,7 @@ defmodule Membrane.LiveCompositor.Context do
   def add_stream(Pad.ref(pad_type, id), ctx = %__MODULE__{}) do
     if !String.valid?(id) do
       raise """
-        All LiveCompositor pads need to be defined as `Pad.ref(pad_name, pad_id)`
+        All Smelter pads need to be defined as `Pad.ref(pad_name, pad_id)`
         where `pad_id` is a string.
       """
     end
@@ -56,7 +56,7 @@ defmodule Membrane.LiveCompositor.Context do
   end
 
   @doc false
-  @spec remove_input(LiveCompositor.input_id(), t()) :: t()
+  @spec remove_input(Smelter.input_id(), t()) :: t()
   def remove_input(input_id, ctx = %__MODULE__{audio_inputs: audio, video_inputs: video}) do
     audio = audio |> Enum.reject(fn id -> input_id == id end)
     video = video |> Enum.reject(fn id -> input_id == id end)
@@ -64,7 +64,7 @@ defmodule Membrane.LiveCompositor.Context do
   end
 
   @doc false
-  @spec remove_output(LiveCompositor.output_id(), t()) :: t()
+  @spec remove_output(Smelter.output_id(), t()) :: t()
   def remove_output(output_id, ctx = %__MODULE__{audio_outputs: audio, video_outputs: video}) do
     audio = audio |> Enum.reject(fn id -> output_id == id end)
     video = video |> Enum.reject(fn id -> output_id == id end)

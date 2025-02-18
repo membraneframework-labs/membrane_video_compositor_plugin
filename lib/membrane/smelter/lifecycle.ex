@@ -1,4 +1,4 @@
-defmodule Membrane.LiveCompositor.Lifecycle do
+defmodule Membrane.Smelter.Lifecycle do
   @moduledoc """
   Lifecycle of the input and output streams.
 
@@ -19,23 +19,23 @@ defmodule Membrane.LiveCompositor.Lifecycle do
   moments of the stream lifecycle.
   """
 
-  alias Membrane.LiveCompositor.Context
   alias Membrane.Pad
+  alias Membrane.Smelter.Context
 
   @typedoc """
   The output pad was linked and the TCP connection was established between pipeline and
-  the compositor instance.
+  the smelter instance.
   """
   @type output_registered :: :output_registered
 
   @typedoc """
   The input pad was linked and the TCP connection was established between pipeline and
-  the compositor instance.
+  the smelter instance.
   """
   @type input_registered :: :input_registered
 
   @typedoc """
-  The compositor instance received the input. The first frames/samples of that input are
+  The smelter instance received the input. The first frames/samples of that input are
   ready to be used.
 
   For example, if you want to ensure that some inputs are ready before you send the
@@ -46,8 +46,8 @@ defmodule Membrane.LiveCompositor.Lifecycle do
   @type input_delivered :: :input_delivered
 
   @typedoc """
-  The compositor instance received the input, and the first frames/samples of that input are used
-  for rendering. This notification can only be sent if compositor was already started either via
+  The smelter instance received the input, and the first frames/samples of that input are used
+  for rendering. This notification can only be sent if Smelter was already started either via
   `composing_strategy: :real_time_auto_init` or with `:start_composing` message.
 
   This notification is usually sent at the same time as `t:input_delivered/0` except for 2 cases:

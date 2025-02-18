@@ -1,30 +1,30 @@
-# Membrane Live Compositor Plugin
+# Membrane Smelter Plugin
 
-[![Hex.pm](https://img.shields.io/hexpm/v/membrane_live_compositor_plugin.svg)](https://hex.pm/packages/membrane_live_compositor_plugin)
-[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/membrane_live_compositor_plugin)
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/membraneframework/membrane_live_compositor_plugin/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/membraneframework/membrane_live_compositor_plugin/tree/master)
+[![Hex.pm](https://img.shields.io/hexpm/v/membrane_smelter_plugin.svg)](https://hex.pm/packages/membrane_smelter_plugin)
+[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/membrane_smelter_plugin)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/membraneframework/membrane_smelter_plugin/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/membraneframework/membrane_smelter_plugin/tree/master)
 
-Membrane SDK for [LiveCompositor](https://compositor.live), that takes multiple input streams, transforms them according to provided transformations and composes them into output streams / videos.
+Membrane SDK for [Smelter](https://smelter.dev), that takes multiple input streams, transforms them according to provided transformations and composes them into output streams / videos.
 
 It is part of [Membrane Multimedia Framework](https://membrane.stream).
 
 ## Installation
 
-The package can be installed by adding `membrane_live_compositor_plugin` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `membrane_smelter_plugin` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:membrane_live_compositor_plugin, "~> 0.10.1"}
+    {:membrane_smelter_plugin, "~> 0.10.1"}
   ]
 end
 ```
 
-LiveCompositor requires having locally installed:
+Smelter requires having locally installed:
 
-- [FFmpeg 6.0](https://ffmpeg.org/download.html) - for streaming inputs / outputs to LiveCompositor
-- [wget](https://www.gnu.org/software/wget/) - for downloading LiveCompositor binary file
-- [tar](https://www.gnu.org/software/tar/) - for decompressing LiveCompositor binary file
+- [FFmpeg 6.0](https://ffmpeg.org/download.html) - for streaming inputs / outputs to Smelter
+- [wget](https://www.gnu.org/software/wget/) - for downloading Smelter binary file
+- [tar](https://www.gnu.org/software/tar/) - for decompressing Smelter binary file
 
 ## Examples
 

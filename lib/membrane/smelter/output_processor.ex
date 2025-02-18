@@ -1,4 +1,4 @@
-defmodule Membrane.LiveCompositor.VideoOutputProcessor do
+defmodule Membrane.Smelter.VideoOutputProcessor do
   @moduledoc false
   # Forwards buffers and send specified output stream format.
 
@@ -51,7 +51,7 @@ defmodule Membrane.LiveCompositor.VideoOutputProcessor do
   end
 end
 
-defmodule Membrane.LiveCompositor.AudioOutputProcessor do
+defmodule Membrane.Smelter.AudioOutputProcessor do
   @moduledoc false
 
   use Membrane.Filter

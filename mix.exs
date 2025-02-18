@@ -1,12 +1,12 @@
-defmodule Membrane.LiveCompositor.Mixfile do
+defmodule Membrane.Smelter.Mixfile do
   use Mix.Project
 
-  @version "0.10.1"
-  @github_url "https://github.com/membraneframework/membrane_live_compositor_plugin"
+  @version "0.11.0"
+  @github_url "https://github.com/membraneframework/membrane_smelter_plugin"
 
   def project do
     [
-      app: :membrane_live_compositor_plugin,
+      app: :membrane_smelter_plugin,
       version: @version,
       compilers: compilers(),
       elixir: "~> 1.13",
@@ -16,11 +16,11 @@ defmodule Membrane.LiveCompositor.Mixfile do
       dialyzer: dialyzer(),
 
       # hex
-      description: "LiveCompositor SDK for Membrane Multimedia Framework",
+      description: "Smelter SDK for Membrane Multimedia Framework",
       package: package(),
 
       # docs
-      name: "Membrane LiveCompositor Plugin",
+      name: "Membrane Smelter Plugin",
       source_url: @github_url,
       docs: docs()
     ]
@@ -80,10 +80,10 @@ defmodule Membrane.LiveCompositor.Mixfile do
   defp package do
     [
       maintainers: ["Software Mansion"],
-      licenses: ["BUSL-1.1"],
+      licenses: ["CustomLicense"],
       links: %{
         "GitHub" => @github_url,
-        "Live Compositor Homepage" => "https://compositor.live",
+        "Smelter Homepage" => "https://smelter.dev",
         "Membrane Framework Homepage" => "https://membrane.stream"
       }
     ]
@@ -95,13 +95,13 @@ defmodule Membrane.LiveCompositor.Mixfile do
       extras: ["README.md", "LICENSE"],
       formatters: ["html"],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.LiveCompositor, Membrane.LiveCompositor.Request],
+      nest_modules_by_prefix: [Membrane.Smelter, Membrane.Smelter.Request],
       groups_for_modules: [
         Encoders: [
-          ~r/^Membrane\.LiveCompositor\.Encoder($|\.)/
+          ~r/^Membrane\.Smelter\.Encoder($|\.)/
         ],
         Requests: [
-          ~r/^Membrane\.LiveCompositor\.Request($|\.)/
+          ~r/^Membrane\.Smelter\.Request($|\.)/
         ]
       ]
     ]

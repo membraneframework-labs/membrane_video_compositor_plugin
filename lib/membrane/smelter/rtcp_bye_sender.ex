@@ -1,4 +1,4 @@
-defmodule Membrane.LiveCompositor.RtcpByeSender do
+defmodule Membrane.Smelter.RtcpByeSender do
   @moduledoc false
 
   use Membrane.Filter

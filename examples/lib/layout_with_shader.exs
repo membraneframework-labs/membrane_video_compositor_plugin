@@ -5,8 +5,8 @@ defmodule LayoutWithShaderPipeline do
 
   require Membrane.Logger
 
-  alias Membrane.LiveCompositor
-  alias Membrane.LiveCompositor.{Encoder, Request}
+  alias Membrane.Smelter
+  alias Membrane.Smelter.{Encoder, Request}
   alias Membrane.PortAudio
 
   @output_width 1920
@@ -30,7 +30,7 @@ defmodule LayoutWithShaderPipeline do
       })
       |> child({:realtimer, 0}, Membrane.Realtimer)
       |> via_in(Pad.ref(:video_input, "video_input_0"))
-      |> child(:live_compositor, %Membrane.LiveCompositor{
+      |> child(:smelter, %Membrane.Smelter{
         framerate: {30, 1},
         server_setup: server_setup,
         init_requests: [
@@ -54,7 +54,7 @@ defmodule LayoutWithShaderPipeline do
       |> child(:sdl_player, Membrane.SDL.Player),
       child({:audio_src, 0}, %Membrane.File.Source{location: audio_sample_path})
       |> child({:audio_demuxer, 0}, Membrane.Ogg.Demuxer),
-      get_child(:live_compositor)
+      get_child(:smelter)
       |> via_out(Pad.ref(:audio_output, @audio_output_id),
         options: [
           encoder: %Encoder.Opus{
@@ -88,7 +88,7 @@ defmodule LayoutWithShaderPipeline do
   @impl true
   def handle_child_notification(
         {:input_registered, Pad.ref(:video_input, _input_id), ctx},
-        :live_compositor,
+        :smelter,
         _ctx,
         state
       ) do
@@ -97,13 +97,13 @@ defmodule LayoutWithShaderPipeline do
       root: scene(ctx.video_inputs)
     }
 
-    {[{:notify_child, {:live_compositor, update_scene_request}}], state}
+    {[{:notify_child, {:smelter, update_scene_request}}], state}
   end
 
   @impl true
   def handle_child_notification(
         {:input_registered, Pad.ref(:audio_input, _input_id), ctx},
-        :live_compositor,
+        :smelter,
         _ctx,
         state
       ) do
@@ -112,20 +112,20 @@ defmodule LayoutWithShaderPipeline do
       inputs: ctx.audio_inputs |> Enum.map(fn input_id -> %{input_id: input_id} end)
     }
 
-    {[{:notify_child, {:live_compositor, update_audio_request}}], state}
+    {[{:notify_child, {:smelter, update_audio_request}}], state}
   end
 
   @impl true
   def handle_child_notification(
         {:request_result, request,
          {:error, %Req.Response{status: response_code, body: response_body}}},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
     if response_code != 200 do
       raise """
-      LiveCompositor request failed:
+      Smelter request failed:
       Request: `#{inspect(request)}.
       Response code: #{response_code}.
       Response body: #{inspect(response_body)}.
@@ -150,7 +150,7 @@ defmodule LayoutWithShaderPipeline do
       })
       |> child({:realtimer_audio, id}, Membrane.Realtimer)
       |> via_in(Pad.ref(:audio_input, "audio_input_#{id}"))
-      |> get_child(:live_compositor)
+      |> get_child(:smelter)
 
     {[spec: spec], state}
   end
@@ -177,7 +177,7 @@ defmodule LayoutWithShaderPipeline do
         })
         |> child({:realtimer, videos_count}, Membrane.Realtimer)
         |> via_in(Pad.ref(:video_input, "video_input_#{videos_count}"))
-        |> get_child(:live_compositor),
+        |> get_child(:smelter),
         child({:audio_src, videos_count}, %Membrane.File.Source{location: state.audio_sample_path})
         |> child({:audio_demuxer, videos_count}, Membrane.Ogg.Demuxer)
       ]
@@ -188,7 +188,7 @@ defmodule LayoutWithShaderPipeline do
     end
   end
 
-  @spec scene(list(LiveCompositor.input_id())) :: map()
+  @spec scene(list(Smelter.input_id())) :: map()
   defp scene(input_ids) do
     %{
       type: :shader,
@@ -203,7 +203,7 @@ defmodule LayoutWithShaderPipeline do
           type: :tiles,
           width: @output_width,
           height: @output_height,
-          background_color_rgba: "#000088FF",
+          background_color: "#000088FF",
           transition: %{
             duration_ms: 300
           },
@@ -225,7 +225,7 @@ end
 
 Utils.FFmpeg.generate_sample_video()
 
-server_setup = Utils.LcServer.server_setup({30, 1})
+server_setup = Utils.SmelterServer.server_setup({30, 1})
 
 {:ok, _supervisor, _pid} =
   Membrane.Pipeline.start_link(LayoutWithShaderPipeline, %{

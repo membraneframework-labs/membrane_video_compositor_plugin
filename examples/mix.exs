@@ -1,11 +1,11 @@
-defmodule Membrane.LiveCompositor.Examples.Mixfile do
+defmodule Membrane.Smelter.Examples.Mixfile do
   use Mix.Project
 
   @version "0.7.0"
 
   def project do
     [
-      app: :membrane_live_compositor_plugin_examples,
+      app: :membrane_smelter_plugin_examples,
       version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -28,7 +28,7 @@ defmodule Membrane.LiveCompositor.Examples.Mixfile do
     [
       # Membrane
       {:membrane_core, "~> 1.0"},
-      {:membrane_live_compositor_plugin, path: ".."},
+      {:membrane_smelter_plugin, path: ".."},
       # VC API requests
       {:req, "~> 0.4.0"},
       # Examples

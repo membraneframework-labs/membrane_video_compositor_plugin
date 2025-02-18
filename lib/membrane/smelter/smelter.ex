@@ -1,6 +1,6 @@
-defmodule Membrane.LiveCompositor do
+defmodule Membrane.Smelter do
   @moduledoc """
-  Membrane SDK for [LiveCompositor](https://github.com/software-mansion/live-compositor).
+  Membrane SDK for [Smelter](https://github.com/software-mansion/smelter).
 
   ## Input streams
 
@@ -8,7 +8,7 @@ defmodule Membrane.LiveCompositor do
   where `input_id` is a string. `input_id` needs to be unique for all input pads, in particular
   you can't have audio and video input pads with the same id.
 
-  See `Membrane.LiveCompositor.Lifecycle` for input stream lifecycle notifications.
+  See `Membrane.Smelter.Lifecycle` for input stream lifecycle notifications.
 
   ## Output streams
 
@@ -16,19 +16,19 @@ defmodule Membrane.LiveCompositor do
   where `output_id` is a string. `output_id` needs to be unique for all output pads, in particular
   you can't have audio and video output pads with the same id.
 
-  After registering and linking an output stream the LiveCompositor will notify the parent with
-  [`output_registered/0`](`t:Membrane.LiveCompositor.Lifecycle.output_registered/0`).
+  After registering and linking an output stream Smelter will notify the parent with
+  [`output_registered/0`](`t:Membrane.Smelter.Lifecycle.output_registered/0`).
 
   ## Composition specification - `video`
 
-  To specify what LiveCompositor should render you can:
+  To specify what Smelter should render you can:
   - Define `initial` option when connecting `:video_output` pad.
-  - Send [`Request.UpdateVideoOutput`](`Membrane.LiveCompositor.Request.UpdateVideoOutput`)
+  - Send [`Request.UpdateVideoOutput`](`Membrane.Smelter.Request.UpdateVideoOutput`)
   notification to update a scene on an already connected pad.
 
   For example, code snippet bellow will update content of a stream from `Pad.ref(:video_output, "output_0")`
   to include streams from `Pad.ref(:video_input, "input_0")` and `Pad.ref(:video_input, "input_1")`
-  side by side using [`Tiles`](https://compositor.live/docs/api/components/Tiles) component.
+  side by side using [`Tiles`](https://smelter.dev/http-api/components/tiles) component.
 
   ```
   scene_update_request =  %Request.UpdateVideoOutput{
@@ -42,19 +42,19 @@ defmodule Membrane.LiveCompositor do
     }
   }
 
-  {[notify_child: {:live_compositor, scene_update_request}]}
+  {[notify_child: {:smelter, scene_update_request}]}
   ```
 
   `:root` option specifies root component of a scene that will be rendered on the output stream.
-  Concept of a component is explained [here](https://compositor.live/docs/concept/component). For
-  actual component definitions see LiveCompositor documentation e.g.
-  [`View`](https://compositor.live/docs/api/components/View),
-  [`Tiles`](https://compositor.live/docs/api/components/Tiles), ...
+  Concept of a component is explained [here](https://smelter.dev/http-api/overview#components). For
+  actual component definitions see Smelter documentation e.g.
+  [`View`](https://smelter.dev/http-api/components/view),
+  [`Tiles`](https://smelter.dev/http-api/components/tiles), ...
 
   ## Composition specification - `audio`
 
   - Define `initial` option when connecting `:audio_output` pad.
-  - Send [`Request.UpdateAudioOutput`](`Membrane.LiveCompositor.Request.UpdateAudioOutput`)
+  - Send [`Request.UpdateAudioOutput`](`Membrane.Smelter.Request.UpdateAudioOutput`)
   notification to audio composition on an already connected pad.
 
   For example, code snippet bellow will update content of a stream from `Pad.ref(:video_output, "output_0")`
@@ -70,21 +70,21 @@ defmodule Membrane.LiveCompositor do
     ]
   }
 
-  {[notify_child: {:live_compositor, audio_update_request}]}
+  {[notify_child: {:smelter, audio_update_request}]}
   ```
 
   ## Notifications
 
-  LiveCompositor bin can send following notifications to the parent process.
-  - [`Lifecycle.notification/0`](`t:Membrane.LiveCompositor.Lifecycle.notification/0`) -
+  Smelter bin can send following notifications to the parent process.
+  - [`Lifecycle.notification/0`](`t:Membrane.Smelter.Lifecycle.notification/0`) -
   Notification about lifecycle of input/output streams.
-  - [`Request.result/0`](`t:Membrane.LiveCompositor.Request.result/0`) - Result of a
-  `Membrane.LiveCompositor.Request` sent from the parent process.
+  - [`Request.result/0`](`t:Membrane.Smelter.Request.result/0`) - Result of a
+  `Membrane.Smelter.Request` sent from the parent process.
 
-  ## LiveCompositor documentation
+  ## Smelter documentation
 
   This documentation covers mostly Elixr/Membrane specific API. For platform/language independent topics
-  that are not covered here check [LiveCompositor documentation](https://compositor.live/docs/category/api-reference).
+  that are not covered here check [Smelter documentation](https://smelter.dev/http-api/overview).
   """
 
   use Membrane.Bin
@@ -95,7 +95,7 @@ defmodule Membrane.LiveCompositor do
 
   alias Membrane.{Opus, Pad, RemoteStream, RTP, TCP}
 
-  alias Membrane.LiveCompositor.{
+  alias Membrane.Smelter.{
     ApiClient,
     ApiClient.IntoRequest,
     Context,
@@ -141,24 +141,24 @@ defmodule Membrane.LiveCompositor do
 
   def_options framerate: [
                 spec: Membrane.RawVideo.framerate(),
-                description: "Framerate of LiveCompositor outputs."
+                description: "Framerate of Smelter outputs."
               ],
               output_sample_rate: [
                 spec: output_sample_rate(),
                 default: 48_000,
-                description: "Sample rate of audio on LiveCompositor outputs."
+                description: "Sample rate of audio on Smelter outputs."
               ],
               api_port: [
                 spec: :inet.port_number() | port_range(),
                 description: """
-                Port number or port range where API of a LiveCompositor will be hosted.
+                Port number or port range where Smelter will be hosted.
                 """,
                 default: 8081
               ],
               stream_fallback_timeout: [
                 spec: Membrane.Time.t(),
                 description: """
-                Timeout that defines when the LiveCompositor should switch to fallback on
+                Timeout that defines when Smelter should switch to fallback on
                 the input stream that stopped sending frames.
                 """,
                 default: Membrane.Time.milliseconds(500)
@@ -166,7 +166,7 @@ defmodule Membrane.LiveCompositor do
               composing_strategy: [
                 spec: :real_time_auto_init | :real_time | :offline_processing,
                 description: """
-                Specifies LiveCompositor mode for composing frames:
+                Specifies Smelter mode for composing frames:
                 - `:real_time` - Frames are produced at a rate dictated by real time clock. The parent
                 process has to send `:start_composing` message to start.
                 - `:real_time_auto_init` - The same as `:real_time`, but the pipeline starts
@@ -178,7 +178,7 @@ defmodule Membrane.LiveCompositor do
                   process data in real time.
 
                     When using this option, make sure to register the output stream before starting;
-                    otherwise, the compositor will run in a busy loop processing data far into the future.
+                    otherwise, Smelter will run in a busy loop processing data far into the future.
                 """,
                 default: :real_time_auto_init
               ],
@@ -189,16 +189,16 @@ defmodule Membrane.LiveCompositor do
                   | :start_locally
                   | {:start_locally, path :: String.t()},
                 description: """
-                Defines how the LiveCompositor bin should start-up a LiveCompositor server.
+                Defines how Smelter bin should start-up a its server.
 
                 Available options:
-                - `:start_locally` - LC server is automatically started.
-                - `{:start_locally, path}` - LC server is automatically started, but different binary
+                - `:start_locally` - Smelter server is automatically started.
+                - `{:start_locally, path}` - Smelter server is automatically started, but different binary
                 is used to spawn the process.
-                - `:already_started` - LiveCompositor bin assumes, that LC server is already started
+                - `:already_started` - Smelter bin assumes, that the server is already started
                 and is available on a localhost on a specified port. When this option is selected, the
                 `api_port` option need to specify an exact port number (not a range).
-                - `{:already_started, ip_or_hostname}` - LiveCompositor bin assumes, that LC server is already
+                - `{:already_started, ip_or_hostname}` - Smelter bin assumes, that the server is already
                 started and is available on a specified IP or name on a specified port. When this option is
                 selected, the `api_port` option need to specify an exact port number (not a range). If
                 `ip_or_hostname` is a string or an atom, it will be resolved to `:inet.ip_address()` using
@@ -209,7 +209,7 @@ defmodule Membrane.LiveCompositor do
               init_requests: [
                 spec: list(Request.t()),
                 description: """
-                Requests that will be sent on startup to the LC server. It's main use case is to
+                Requests that will be sent on startup to Smelter server. It's main use case is to
                 register renderers that will be needed in the scene from the very beginning.
 
                 Example:
@@ -231,7 +231,7 @@ defmodule Membrane.LiveCompositor do
         spec: boolean(),
         default: false,
         description: """
-        If stream is marked required the LiveCompositor will delay processing new frames until
+        If stream is marked required Smelter will delay processing new frames until
         frames are available. In particular, if there is at least one required input stream and the
         encoder is not able to produce frames on time, the output stream will also be delayed. This
         delay will happen regardless of whether required input stream was on time or not.
@@ -251,7 +251,7 @@ defmodule Membrane.LiveCompositor do
         description: """
         Port number or port range.
 
-        Internally LiveCompositor server communicates with this pipeline locally over RTP.
+        Internally Smelter server communicates with this pipeline locally over RTP.
         This value defines which TCP ports will be used.
         """,
         default: {10_000, 60_000}
@@ -271,7 +271,7 @@ defmodule Membrane.LiveCompositor do
         spec: boolean(),
         default: false,
         description: """
-        If stream is marked required the LiveCompositor will delay processing new frames until
+        If stream is marked required Smelter will delay processing new frames until
         frames are available. In particular, if there is at least one required input stream and the
         encoder is not able to produce frames on time, the output stream will also be delayed. This
         delay will happen regardless of whether required input stream was on time or not.
@@ -291,7 +291,7 @@ defmodule Membrane.LiveCompositor do
         description: """
         Port number or port range.
 
-        Internally LiveCompositor server communicates with this pipeline locally over RTP.
+        Internally Smelter server communicates with this pipeline locally over RTP.
         This value defines which TCP ports will be used.
         """,
         default: {10_000, 60_000}
@@ -307,7 +307,7 @@ defmodule Membrane.LiveCompositor do
         description: """
         Port number or port range.
 
-        Internally LiveCompositor server communicates with this pipeline locally over RTP.
+        Internally Smelter server communicates with this pipeline locally over RTP.
         This value defines which TCP ports will be used.
         """,
         default: {10_000, 60_000}
@@ -356,10 +356,10 @@ defmodule Membrane.LiveCompositor do
         To change the scene after the registration you can send `%Request.UpdateVideoOutput{}`
         notification.
 
-        Format of the `:root` field is documented [here](https://compositor.live/docs/concept/component).
+        Format of the `:root` field is documented [here](https://smelter.dev/http-api/overview#components).
         For specific options see documentation pages for each component e.g.
-        [`View`](https://compositor.live/docs/api/components/View),
-        [`Tiles`](https://compositor.live/docs/api/components/Tiles), ...
+        [`View`](https://smelter.dev/http-api/components/view),
+        [`Tiles`](https://smelter.dev/http-api/components/tiles), ...
         """
       ]
     ]
@@ -373,7 +373,7 @@ defmodule Membrane.LiveCompositor do
         description: """
         Port number or port range.
 
-        Internally LiveCompositor server communicates with this pipeline locally over RTP.
+        Internally Smelter server communicates with this pipeline locally over RTP.
         This value defines which TCP ports will be used.
         """,
         default: {10_000, 60_000}
@@ -431,7 +431,7 @@ defmodule Membrane.LiveCompositor do
       Membrane.ResourceGuard.register(
         ctx.resource_guard,
         fn -> Process.exit(server_pid, :kill) end,
-        tag: :live_compositor_server
+        tag: :smelter_server
       )
     end
 
@@ -541,7 +541,7 @@ defmodule Membrane.LiveCompositor do
         |> via_out(:output, options: [stream_id: {:payload_type, 96}])
         |> child(%Membrane.RTP.JitterBuffer{latency: 0, clock_rate: 90_000})
         |> child(RTP.H264.Depayloader)
-        |> child({:output_processor, pad_id}, %Membrane.LiveCompositor.VideoOutputProcessor{
+        |> child({:output_processor, pad_id}, %Membrane.Smelter.VideoOutputProcessor{
           output_stream_format: output_stream_format
         })
         |> bin_output(Pad.ref(:video_output, pad_id))
@@ -567,7 +567,7 @@ defmodule Membrane.LiveCompositor do
       |> via_out(:output, options: [stream_id: {:payload_type, 97}])
       |> child(%Membrane.RTP.JitterBuffer{latency: 0, clock_rate: 48_000})
       |> child(RTP.Opus.Depayloader)
-      |> child({:output_processor, pad_id}, Membrane.LiveCompositor.AudioOutputProcessor)
+      |> child({:output_processor, pad_id}, Membrane.Smelter.AudioOutputProcessor)
       |> bin_output(Pad.ref(:audio_output, pad_id))
     ]
 
@@ -623,7 +623,7 @@ defmodule Membrane.LiveCompositor do
   @impl true
   def handle_parent_notification(notification, _ctx, state) do
     Membrane.Logger.warning(
-      "LiveCompositor received unknown notification from the parent: #{inspect(notification)}!"
+      "Smelter received unknown notification from the parent: #{inspect(notification)}!"
     )
 
     {[], state}
@@ -749,7 +749,7 @@ defmodule Membrane.LiveCompositor do
     case response do
       {:error, exception} ->
         Membrane.Logger.error(
-          "LiveCompositor failed to send a request: #{inspect(req)}.\nException: #{inspect(exception)}."
+          "Smelter failed to send a request: #{inspect(req)}.\nException: #{inspect(exception)}."
         )
 
       {:ok, _result} ->

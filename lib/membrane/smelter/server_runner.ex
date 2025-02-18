@@ -1,26 +1,26 @@
-defmodule Membrane.LiveCompositor.ServerRunner do
+defmodule Membrane.Smelter.ServerRunner do
   @moduledoc false
 
   require Membrane.Logger
 
-  alias Membrane.LiveCompositor
-  alias Membrane.LiveCompositor.ApiClient
+  alias Membrane.Smelter
+  alias Membrane.Smelter.ApiClient
 
   @local_host {127, 0, 0, 1}
 
-  @spec ensure_server_started(LiveCompositor.t(), Membrane.UtilitySupervisor.t()) ::
+  @spec ensure_server_started(Smelter.t(), Membrane.UtilitySupervisor.t()) ::
           {:ok, {:inet.ip_address(), :inet.port_number()}, pid() | nil}
   def ensure_server_started(opt, utility_supervisor) do
     {framerate_num, framerate_den} = opt.framerate
     framerate_str = "#{framerate_num}/#{framerate_den}"
-    instance_id = "live_compositor_#{:rand.uniform(1_000_000_000)}"
+    instance_id = "smelter_#{:rand.uniform(1_000_000_000)}"
 
     env = %{
-      "LIVE_COMPOSITOR_INSTANCE_ID" => instance_id,
-      "LIVE_COMPOSITOR_OFFLINE_PROCESSING_ENABLE" =>
+      "SMELTER_INSTANCE_ID" => instance_id,
+      "SMELTER_OFFLINE_PROCESSING_ENABLE" =>
         to_string(opt.composing_strategy == :offline_processing),
-      "LIVE_COMPOSITOR_OUTPUT_FRAMERATE" => framerate_str,
-      "LIVE_COMPOSITOR_STREAM_FALLBACK_TIMEOUT_MS" =>
+      "SMELTER_OUTPUT_FRAMERATE" => framerate_str,
+      "SMELTER_STREAM_FALLBACK_TIMEOUT_MS" =>
         to_string(Membrane.Time.as_milliseconds(opt.stream_fallback_timeout, :round))
     }
 
@@ -33,8 +33,8 @@ defmodule Membrane.LiveCompositor.ServerRunner do
 
             :error ->
               raise """
-              Live Compositor prebuilds are not available for this platform. Start LiveCompositor bin
-              with "server_setup: {:start_locally, compositor_binary_path}" to provide your own
+              Smelter prebuilds are not available for this platform. Start Smelter bin
+              with "server_setup: {:start_locally, smelter_binary_path}" to provide your own
               executable.
               """
           end
@@ -106,7 +106,7 @@ defmodule Membrane.LiveCompositor.ServerRunner do
 
   @spec start_server(
           String.t(),
-          :inet.port_number() | LiveCompositor.port_range(),
+          :inet.port_number() | Smelter.port_range(),
           map(),
           String.t(),
           Membrane.UtilitySupervisor.t()
@@ -120,13 +120,13 @@ defmodule Membrane.LiveCompositor.ServerRunner do
       end
 
     unless File.exists?(bin_path) do
-      raise "Live Compositor binary is not available under search path: \"#{bin_path}\"."
+      raise "Smelter binary is not available under search path: \"#{bin_path}\"."
     end
 
     port_lower_bound..port_upper_bound
     |> Enum.shuffle()
     |> Enum.reduce_while(
-      {:error, "Failed to start a LiveCompositor server on any of the ports."},
+      {:error, "Failed to start a Smelter server on any of the ports."},
       fn port, err ->
         try_starting_on_port(port, err, env, bin_path, instance_id, utility_supervisor)
       end
@@ -143,7 +143,7 @@ defmodule Membrane.LiveCompositor.ServerRunner do
         ) ::
           {:halt, {:ok, :inet.port_number()}} | {:cont, err :: String.t()}
   defp try_starting_on_port(port, err, env, bin_path, instance_id, utility_supervisor) do
-    Membrane.Logger.debug("Trying to launch LiveCompositor on port: #{port}")
+    Membrane.Logger.debug("Trying to launch Smelter on port: #{port}")
 
     case start_on_port(port, env, bin_path, instance_id, utility_supervisor) do
       {:ok, pid} -> {:halt, {:ok, port, pid}}
@@ -161,8 +161,8 @@ defmodule Membrane.LiveCompositor.ServerRunner do
   defp start_on_port(lc_port, env, bin_path, instance_id, utility_supervisor) do
     env =
       Map.merge(env, %{
-        "LIVE_COMPOSITOR_API_PORT" => to_string(lc_port),
-        "LIVE_COMPOSITOR_WEB_RENDERER_ENABLE" => "false"
+        "SMELTER_API_PORT" => to_string(lc_port),
+        "SMELTER_WEB_RENDERER_ENABLE" => "false"
       })
 
     spec =

@@ -5,8 +5,8 @@ defmodule TransitionPipeline do
 
   require Membrane.Logger
 
-  alias Membrane.LiveCompositor
-  alias Membrane.LiveCompositor.{Context, Encoder, OutputOptions, Request}
+  alias Membrane.Smelter
+  alias Membrane.Smelter.{Context, Encoder, OutputOptions, Request}
 
   @output_width 1280
   @output_height 720
@@ -16,7 +16,7 @@ defmodule TransitionPipeline do
   @impl true
   def handle_init(_ctx, %{sample_path: sample_path, server_setup: server_setup}) do
     spec =
-      child(:live_compositor, %Membrane.LiveCompositor{
+      child(:smelter, %Membrane.Smelter{
         framerate: {30, 1},
         server_setup: server_setup
       })
@@ -48,7 +48,7 @@ defmodule TransitionPipeline do
   @impl true
   def handle_child_notification(
         {:input_registered, Pad.ref(_pad_type, input_id), lc_ctx},
-        :live_compositor,
+        :smelter,
         _ctx,
         state
       ) do
@@ -68,19 +68,19 @@ defmodule TransitionPipeline do
       end
 
     {[
-       {:notify_child, {:live_compositor, request}}
+       {:notify_child, {:smelter, request}}
      ], state}
   end
 
   @impl true
   def handle_child_notification(
         {:request_result, request, {:ok, result}},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
     Membrane.Logger.debug(
-      "LiveCompositor request succeeded\nRequest: #{inspect(request)}\nResult: #{inspect(result)}"
+      "Smelter request succeeded\nRequest: #{inspect(request)}\nResult: #{inspect(result)}"
     )
 
     {[], state}
@@ -90,13 +90,13 @@ defmodule TransitionPipeline do
   def handle_child_notification(
         {:request_result, request,
          {:error, %Req.Response{status: response_code, body: response_body}}},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
     if response_code != 200 do
       raise """
-      LiveCompositor request failed:
+      Smelter request failed:
       Request: `#{inspect(request)}.
       Response code: #{response_code}.
       Response body: #{inspect(response_body)}.
@@ -127,7 +127,7 @@ defmodule TransitionPipeline do
       })
       |> child({:realtimer, input_id}, Membrane.Realtimer)
       |> via_in(Pad.ref(:video_input, input_id))
-      |> get_child(:live_compositor)
+      |> get_child(:smelter)
 
     {[spec: spec], state}
   end
@@ -191,7 +191,7 @@ end
 
 Utils.FFmpeg.generate_sample_video()
 
-server_setup = Utils.LcServer.server_setup({30, 1})
+server_setup = Utils.SmelterServer.server_setup({30, 1})
 
 {:ok, _supervisor, _pid} =
   Membrane.Pipeline.start_link(TransitionPipeline, %{

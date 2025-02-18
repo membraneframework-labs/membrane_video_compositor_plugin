@@ -1,4 +1,4 @@
-defmodule Membrane.LiveCompositor.ApiClient do
+defmodule Membrane.Smelter.ApiClient do
   @moduledoc false
 
   require Membrane.Logger
@@ -14,7 +14,7 @@ defmodule Membrane.LiveCompositor.ApiClient do
   defprotocol IntoRequest do
     @moduledoc false
 
-    alias Membrane.LiveCompositor.ApiClient
+    alias Membrane.Smelter.ApiClient
 
     @spec into_request(any()) :: ApiClient.request()
     def into_request(data)

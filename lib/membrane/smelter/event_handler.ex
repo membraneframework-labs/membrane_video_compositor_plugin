@@ -1,4 +1,4 @@
-defmodule Membrane.LiveCompositor.EventHandler do
+defmodule Membrane.Smelter.EventHandler do
   @moduledoc false
 
   use WebSockex

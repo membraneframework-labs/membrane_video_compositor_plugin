@@ -1,8 +1,8 @@
-defmodule Membrane.LiveCompositor.StreamsHandler do
+defmodule Membrane.Smelter.StreamsHandler do
   @moduledoc false
 
-  alias Membrane.LiveCompositor
-  alias Membrane.LiveCompositor.{ApiClient, State}
+  alias Membrane.Smelter
+  alias Membrane.Smelter.{ApiClient, State}
 
   @spec register_video_input_stream(String.t(), map(), State.t()) ::
           {:ok, :inet.port_number()} | {:error, any()}
@@ -100,7 +100,7 @@ defmodule Membrane.LiveCompositor.StreamsHandler do
     |> map_response
   end
 
-  @spec map_eos_cond(LiveCompositor.send_eos_condition()) :: any()
+  @spec map_eos_cond(Smelter.send_eos_condition()) :: any()
   defp map_eos_cond(cond) do
     case cond do
       nil -> nil
@@ -111,7 +111,7 @@ defmodule Membrane.LiveCompositor.StreamsHandler do
     end
   end
 
-  @spec map_port(LiveCompositor.port_range() | :inet.port_number()) ::
+  @spec map_port(Smelter.port_range() | :inet.port_number()) ::
           String.t() | :inet.port_number()
   defp map_port(port) do
     case port do

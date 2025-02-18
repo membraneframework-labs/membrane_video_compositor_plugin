@@ -1,17 +1,17 @@
-defmodule Utils.LcServer do
+defmodule Utils.SmelterServer do
   @moduledoc false
 
   # The same value as default in `api_port`.
-  @lc_port 8081
+  @smelter_port 8081
 
   @doc """
-  If LIVE_COMPOSITOR_PATH env var exists start video compositor instance.
+  If SMELTER_PATH env var exists start Smelter instance.
   Returns server_setup
   """
   @spec server_setup(Membrane.RawVideo.framerate()) ::
           {:start_locally, String.t()} | :already_started
   def server_setup(framerate) do
-    case System.get_env("LIVE_COMPOSITOR_PATH") do
+    case System.get_env("SMELTER_PATH") do
       nil ->
         :start_locally
 
@@ -44,7 +44,7 @@ defmodule Utils.LcServer do
         "--manifest-path",
         Path.join(lc_directory_path, "Cargo.toml"),
         "--bin",
-        "live_compositor"
+        "smelter"
       ])
 
     {framerate_num, framerate_den} = framerate
@@ -61,19 +61,19 @@ defmodule Utils.LcServer do
            "--manifest-path",
            Path.join(lc_directory_path, "Cargo.toml"),
            "--bin",
-           "live_compositor"
+           "smelter"
          ],
          [
            env: %{
-             "LIVE_COMPOSITOR_API_PORT" => "#{@lc_port}",
-             "LIVE_COMPOSITOR_WEB_RENDERER_ENABLE" => "false",
-             "LIVE_COMPOSITOR_OUTPUT_FRAMERATE" => framerate_str
+             "SMELTER_API_PORT" => "#{@smelter_port}",
+             "SMELTER_WEB_RENDERER_ENABLE" => "false",
+             "SMELTER_OUTPUT_FRAMERATE" => framerate_str
            }
          ]
        ]}
     ]
 
-    opts = [strategy: :one_for_one, name: Utils.LcServer]
+    opts = [strategy: :one_for_one, name: Utils.SmelterServer]
     Supervisor.start_link(children, opts)
   end
 end

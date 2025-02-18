@@ -1,9 +1,9 @@
-defmodule Membrane.LiveCompositor.State do
+defmodule Membrane.Smelter.State do
   @moduledoc false
 
   require Membrane.Pad
-  alias Membrane.LiveCompositor
-  alias Membrane.LiveCompositor.Context
+  alias Membrane.Smelter
+  alias Membrane.Smelter.Context
 
   @enforce_keys [
     :output_framerate,
@@ -17,7 +17,7 @@ defmodule Membrane.LiveCompositor.State do
   @type t :: %__MODULE__{
           context: Context.t(),
           output_framerate: Membrane.RawVideo.framerate(),
-          output_sample_rate: LiveCompositor.output_sample_rate(),
+          output_sample_rate: Smelter.output_sample_rate(),
           composing_strategy: :real_time_auto_init | :real_time | :offline_processing,
           lc_address: {ip :: :inet.ip_address(), :inet.port_number()},
           server_pid: pid() | nil

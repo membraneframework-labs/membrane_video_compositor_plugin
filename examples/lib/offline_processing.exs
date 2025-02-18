@@ -5,8 +5,8 @@ defmodule OfflineProcessing do
 
   require Membrane.Logger
 
-  alias Membrane.LiveCompositor
-  alias Membrane.LiveCompositor.Request
+  alias Membrane.Smelter
+  alias Membrane.Smelter.Request
 
   @video_output_id "video_output_1"
   @audio_output_id "audio_output_1"
@@ -21,7 +21,7 @@ defmodule OfflineProcessing do
     spec = [
       child(:file_source, %Membrane.File.Source{location: sample_path})
       |> child(:mp4_demuxer, Membrane.MP4.Demuxer.ISOM),
-      child(:live_compositor, %LiveCompositor{
+      child(:smelter, %Smelter{
         framerate: {30, 1},
         server_setup: server_setup,
         composing_strategy: :offline_processing,
@@ -31,7 +31,7 @@ defmodule OfflineProcessing do
       })
       |> via_out(Pad.ref(:video_output, @video_output_id),
         options: [
-          encoder: %LiveCompositor.Encoder.FFmpegH264{
+          encoder: %Smelter.Encoder.FFmpegH264{
             preset: :ultrafast
           },
           width: @output_width,
@@ -51,10 +51,10 @@ defmodule OfflineProcessing do
       })
       |> child(:muxer, Membrane.MP4.Muxer.ISOM)
       |> child(:sink, %Membrane.File.Sink{location: @output_file}),
-      get_child(:live_compositor)
+      get_child(:smelter)
       |> via_out(Pad.ref(:audio_output, @audio_output_id),
         options: [
-          encoder: %LiveCompositor.Encoder.Opus{
+          encoder: %Smelter.Encoder.Opus{
             channels: :stereo
           },
           send_eos_when: :all_inputs,
@@ -105,9 +105,9 @@ defmodule OfflineProcessing do
     }
 
     {[
-       notify_child: {:live_compositor, schedule_scene_update_1},
-       notify_child: {:live_compositor, schedule_scene_update_2},
-       notify_child: {:live_compositor, schedule_audio_update}
+       notify_child: {:smelter, schedule_scene_update_1},
+       notify_child: {:smelter, schedule_scene_update_2},
+       notify_child: {:smelter, schedule_audio_update}
      ], state}
   end
 
@@ -136,7 +136,7 @@ defmodule OfflineProcessing do
                 required: true
               ]
             )
-            |> get_child(:live_compositor)
+            |> get_child(:smelter)
 
           %Membrane.AAC{sample_rate: sample_rate, channels: channels} ->
             get_child(:mp4_demuxer)
@@ -172,7 +172,7 @@ defmodule OfflineProcessing do
                 required: true
               ]
             )
-            |> get_child(:live_compositor)
+            |> get_child(:smelter)
         end
       end)
 
@@ -182,7 +182,7 @@ defmodule OfflineProcessing do
   @impl true
   def handle_child_notification(
         {:input_delivered, Pad.ref(pad_type, pad_id), ctx},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
@@ -190,7 +190,7 @@ defmodule OfflineProcessing do
 
     if state.registered_compositor_streams == 4 do
       # send start when all inputs are connected
-      {[notify_child: {:live_compositor, :start_composing}], state}
+      {[notify_child: {:smelter, :start_composing}], state}
     else
       {[], state}
     end
@@ -199,7 +199,7 @@ defmodule OfflineProcessing do
   @impl true
   def handle_child_notification(
         {:output_registered, Pad.ref(pad_type, pad_id), ctx},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
@@ -207,7 +207,7 @@ defmodule OfflineProcessing do
 
     if state.registered_compositor_streams == 4 do
       # send start when all inputs are connected
-      {[notify_child: {:live_compositor, :start_composing}], state}
+      {[notify_child: {:smelter, :start_composing}], state}
     else
       {[], state}
     end
@@ -216,12 +216,12 @@ defmodule OfflineProcessing do
   @impl true
   def handle_child_notification(
         {:request_result, request, {:ok, result}},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
     Membrane.Logger.debug(
-      "LiveCompositor request succeeded\nRequest: #{inspect(request)}\nResult: #{inspect(result)}"
+      "Smelter request succeeded\nRequest: #{inspect(request)}\nResult: #{inspect(result)}"
     )
 
     {[], state}
@@ -231,13 +231,13 @@ defmodule OfflineProcessing do
   def handle_child_notification(
         {:request_result, request,
          {:error, %Req.Response{status: response_code, body: response_body}}},
-        :live_compositor,
+        :smelter,
         _membrane_ctx,
         state
       ) do
     if response_code != 200 do
       raise """
-      LiveCompositor request failed:
+      Smelter request failed:
       Request: #{inspect(request)}.
       Response code: #{response_code}.
       Response body: #{inspect(response_body)}.
@@ -281,7 +281,7 @@ defmodule OfflineProcessing do
           type: :tiles,
           width: @output_width,
           height: @output_height,
-          background_color_rgba: "#000088FF",
+          background_color: "#000088FF",
           transition: %{
             duration_ms: 300
           },
@@ -301,7 +301,7 @@ defmodule OfflineProcessing do
 end
 
 Utils.FFmpeg.generate_sample_video()
-server_setup = Utils.LcServer.server_setup({30, 1})
+server_setup = Utils.SmelterServer.server_setup({30, 1})
 
 {:ok, supervisor, _pid} =
   Membrane.Pipeline.start_link(OfflineProcessing, %{

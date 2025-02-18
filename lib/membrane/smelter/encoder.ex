@@ -1,4 +1,4 @@
-defmodule Membrane.LiveCompositor.Encoder do
+defmodule Membrane.Smelter.Encoder do
   @moduledoc false
 
   defmodule FFmpegH264 do
